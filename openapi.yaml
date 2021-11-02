@@ -1,0 +1,309 @@
+openapi: 3.0.2
+info:
+  title: Sadales Tikls M2M API
+  version: 1.0.0
+  description: |-
+    The latest generation of M2M (machine-to-machine) technologies enables automated data
+    transfer without human intervention. This solution opens wide opportunities to improve
+    the company's efficiency, as well as to develop new business opportunities.
+
+    Read more at https://www.sadalestikls.lv/en/to-customers/electricity-meters/data-services/
+servers:
+  - url: 'https://services.e-st.lv/m2m'
+    description: Production
+paths:
+  /get-object-list:
+    get:
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sDate:
+                    type: string
+                    format: date-time
+                    description: Date when the data is available (value is in XML dateTime format). A start date of the service
+                  cEIC:
+                    type: string
+                    description: Customer EIC code. Customer identifier in ST systems
+                  cName:
+                    type: string
+                    description: Customer name/surname or company name
+                  oList:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        oEIC:
+                          type: string
+                          description: Object EIC code. Object identifier in ST systems
+                        oName:
+                          type: string
+                          description: Object name
+                        oStatus:
+                          type: string
+                          description: |
+                            Object connection status:
+                             A – object is connected (active)
+                             I – object is disconnected (not active)
+                        oDate:
+                          type: string
+                          format: date-time
+                          description: |
+                            Date of last change of object counter status (value is in
+                            XML dateTime format)
+                        oAddr:
+                          type: object
+                          properties:
+                            region:
+                              type: string
+                              description: region
+                            country:
+                              type: string
+                              description: country
+                            city:
+                              type: string
+                              description: city
+                            county:
+                              type: string
+                              description: country
+                            village:
+                              type: string
+                              description: village
+                            street:
+                              type: string
+                              description: street
+                            hNameNr:
+                              type: string
+                              description: house number / name
+                            flatNr:
+                              type: string
+                              description: apartment (flat) number
+                            pCode:
+                              type: string
+                              description: postal code
+                            custAddrDet:
+                              type: string
+                              description: custom address detail. For use with non-standard addresses.
+                          required: [country]
+                        mpList:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              mpNr:
+                                type: string
+                                description: Metering point number
+                              mList:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    mNr:
+                                      type: string
+                                      description: Meter number
+                                  required: [mNr]
+
+                      required: [oEIC, oName, oStatus, oAddr, mpList]
+                required: [sDate, cEIC, cName, oList]
+        400:
+          $ref: '#/components/responses/CommonError'
+        401:
+          $ref: '#/components/responses/CommonError'
+        500:
+          $ref: '#/components/responses/CommonError'
+
+      operationId: get-object-list
+      summary: Provide basic information about the objects which are available to them.
+      description: "The service returns information about the object information available to the customer or
+their representative in accordance with the APIKEY assigned to the object."
+  /get-object-consumption:
+    get:
+      parameters:
+        - name: oEIC
+          description: Object EIC code. Object identifier in ST systems
+          schema:
+            type: string
+          in: query
+          required: true
+        - name: mpNr
+          description: Metering point number
+          schema:
+            type: string
+          in: query
+          required: false
+        - name: mNr
+          description: Meter number
+          schema:
+            type: string
+          in: query
+          required: false
+        - name: dF
+          description: Start of the period for which the data is to be returned (value is in XML dateTime format)
+          schema:
+            type: string
+            format: date-time
+          in: query
+          required: true
+        - name: dT
+          description: End of the period for which the data is to be returned (value is in XML dateTime format)
+          schema:
+            type: string
+            format: date-time
+          in: query
+          required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    mpNr:
+                      type: string
+                      description: Metering point number
+                    mList:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          mNr:
+                            type: string
+                            description: Meter number
+                          cList:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                cDt:
+                                  type: string
+                                  format: date-time
+                                  description: |
+                                    Date and time of consumption
+                                    Important: The date and time of consumption are
+                                    provided in the response according to the general
+                                    accepted principle of displaying consumption data in
+                                    the conditions of the open electricity market. This
+                                    means that the amount consumed in the current hour
+                                    will be displayed as the value at the very beginning of
+                                    the next hour.
+                                    For example, the consumption listed from 00-01 is
+                                    returned as "cDt": "2020-11-11T01:00:00.000+02:00",
+                                    while the consumption listed from 01-02 is displayed as
+                                    "cDt": "2020-11-11T02:00:00.000+02:00", etc.
+                                    The last hour or consumption listed from 23-24 is
+                                    returned at the first hour of the next day "cDt": "2020-
+                                    11-12T00:00:00.000+02:00"
+                                cVR:
+                                  type: number
+                                  description: First time read consumptions from meter
+                                cVRSt:
+                                  type: string
+                                  enum: [C, D, M, E, N, U, CD]
+                                  description: |
+                                    Consumption status:
+                                     C – data is not fully available or incorrect
+                                     D – consumption adjusted according to the
+                                    difference of meter readings, there have been
+                                    deficiencies in the load profile readings, the
+                                    meter has not been read, consumption at the
+                                    object is written off according to the average
+                                    consumption (the amount of consumption does
+                                    not match the total consumption of the period)
+                                     M – consumption was adjusted (consumption
+                                    corrected in result of rounding error)
+                                     E – consumption was corrected by meter
+                                    reading IS
+                                     N – communication error while connecting to
+                                    the meter
+                                     U – value is not usable
+                                     CD or other combination of previously
+                                    mentioned statuses, multiple reasons together
+                                cVV:
+                                  type: number
+                                  description: Consumption value which is used for billing
+                              required: [cDt, cVR]
+                        required: [mNr, cList]
+                  required: [mpNr, mList]
+
+        400:
+          $ref: '#/components/responses/CommonError'
+        401:
+          $ref: '#/components/responses/CommonError'
+        500:
+          $ref: '#/components/responses/CommonError'
+      operationId: get-object-consumption
+      summary: Provide  consumption information for the objects available to the customer
+      description: >+
+        The service returns data according to the APIKEY assigned to the object in addition to the
+        rest of parameters for the data request.
+        The service provides the consumption information only for objects with smart
+        meters. The service provides information about both the consumption used for billing
+        and the actual consumption from the smart meter, which was successfully read the
+        first time the meter was read.
+
+        Additional terms of use
+        Maximum available consumption data period: one year from the end of the current billing
+        period.
+        If the request period exceeds one year, only one year of data, counting from the dT value
+        element, is returned, i.e. for the last 365 days.
+components:
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer
+      description: >-
+        An API key (APIKEY) is used as the authentication / authorization mechanism. APIKEY
+        essentially is a unique alphanumeric string to be used in service authorization and provides
+        access to object data.
+
+        APIKEY can be created in the "DATA SERVICES" section of the https://www.e-st.lv portal.
+        An object can have only one APIKEY assigned to it, but if the customer wants, the same
+        APIKEY can be used on several objects or groups of objects to group objects into lists, for
+        example, according to the geographical location or some other principle convenient for the
+        customer.
+
+        APIKEY is the only AUTHORIZATION mechanism for the DATA SERVICE. The Customer
+        is fully responsible for its distribution to third parties who may use the APIKEY in data
+        exchange on behalf of the Customer.
+  responses:
+    CommonError:
+      description: |
+        In customer services, error processing takes place with the help of a separate error
+        structure element.
+        Each service has its own error messages. If error handling is specific to a particular service,
+        explanations of error codes and messages are provided with the service description.
+        In other cases, read the error message and act accordingly.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    # Schema for error response body
+    Error:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Error description element
+        invalid-params:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Error code / invalid element name
+              reason:
+                type: string
+                description: Error text / description
+            required: [name, reason]
+      required: [title, invalid-params]
+security:
+  - Bearer: []

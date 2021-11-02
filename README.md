@@ -1,6 +1,11 @@
 # sadales-tikls-m2m-api-client
 A client library for accessing Sadales Tikls M2M API
 
+## OpenAPI
+See preview in [Swagger Editor online](https://editor.swagger.io/?url=https://raw.githubusercontent.com/vermut/sadales-tikls-m2m/master/openapi.yaml).
+
+> Keep in mind that direct queries from browser won't work due to known CORS issue.
+
 ## Usage
 First, create a client:
 

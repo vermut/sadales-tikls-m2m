@@ -3,15 +3,15 @@ name = "sadales-tikls-m2m"
 version = "1.0.0"
 description = "A client library for accessing Sadales Tikls M2M API"
 
-authors = ["Pavels Veretennikovs"]
-url = "https://github.com/vermut/sadales-tikls-m2m"
+authors = ["Pavels Veretennikovs <vermut@pm.me>"]
+repository = "https://github.com/vermut/sadales-tikls-m2m"
 
 readme = "README.md"
 packages = [
     {include = "sadales_tikls_m2m_api_client"},
 ]
 include = ["CHANGELOG.md", "sadales_tikls_m2m_api_client/py.typed"]
-
+license = "Apache 2.0"
 
 [tool.poetry.dependencies]
 python = "^3.6"
